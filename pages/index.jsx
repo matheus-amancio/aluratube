@@ -2,10 +2,30 @@ import config from '../config.json';
 import styled from 'styled-components';
 import Menu from '../src/components/Menu';
 import { StyledTimeline } from '../src/components/Timeline';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { videoService } from '../src/components/services/videoService';
 
 function HomePage() {
+  const service = videoService();
   const [valorDoFiltro, setValorDoFiltro] = useState('');
+  const [playlists, setPlaylists] = useState({});
+
+  useEffect(() => {
+    service.getAllVideos().then((response) => {
+      console.log(response.data);
+      const novasPlaylists = {};
+      response.data.forEach((video) => {
+        if (!novasPlaylists[video.playlist]) {
+          novasPlaylists[video.playlist] = [];
+        }
+        novasPlaylists[video.playlist] = [
+          video,
+          ...novasPlaylists[video.playlist],
+        ];
+      });
+      setPlaylists(novasPlaylists);
+    });
+  }, []);
 
   return (
     <>
@@ -21,7 +41,7 @@ function HomePage() {
           setValorDoFiltro={setValorDoFiltro}
         />
         <Header />
-        <Timeline searchValue={valorDoFiltro} playlists={config.playlists} />
+        <Timeline searchValue={valorDoFiltro} playlists={playlists} />
       </div>
     </>
   );
